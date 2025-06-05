@@ -13,9 +13,17 @@ class TaskManager {
             pending: (task) => !task.completed,
             completed: (task) => task.completed
         };
-        this.currentFilter = 'all';
+        this.currentFilter = localStorage.getItem('filter') || 'all';
+        const theme = localStorage.getItem('theme');
+        const themeBtn = document.getElementById('themeToggle');
+        if (theme === 'dark') {
+            document.body.classList.add('dark');
+            themeBtn.textContent = 'Tema claro';
+        } else {
+            themeBtn.textContent = 'Tema oscuro';
+        }
         this.initEventListeners();
-        this.renderTasks();
+        this.filterTasks(this.currentFilter);
     }
 
     initEventListeners() {
@@ -27,13 +35,21 @@ class TaskManager {
         document.querySelectorAll('.filter-btn').forEach(button => {
             button.addEventListener('click', () => this.filterTasks(button.dataset.filter));
         });
+
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            const mode = document.body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', mode);
+            const btn = document.getElementById('themeToggle');
+            btn.textContent = mode === 'dark' ? 'Tema claro' : 'Tema oscuro';
+        });
     }
 
     addTask() {
         const taskInput = document.getElementById('taskInput');
         const taskText = taskInput.value.trim();
 
-        if (taskText) {
+        if (taskText && !this.tasks.some(t => t.text.toLowerCase() === taskText.toLowerCase())) {
             this.tasks.push({
                 id: Date.now(),
                 text: taskText,
@@ -43,6 +59,8 @@ class TaskManager {
             this.saveTasks();
             this.renderTasks();
             taskInput.value = '';
+        } else if (taskText) {
+            alert('La tarea ya existe');
         }
     }
 
@@ -56,9 +74,20 @@ class TaskManager {
     }
 
     deleteTask(taskId) {
-        this.tasks = this.tasks.filter(task => task.id !== taskId);
-        this.saveTasks();
-        this.renderTasks();
+        if (confirm('¿Eliminar esta tarea?')) {
+            const index = this.tasks.findIndex(task => task.id === taskId);
+            if (index > -1) {
+                this.tasks.splice(index, 1);
+                this.saveTasks();
+                const li = document.querySelector(`li[data-id="${taskId}"]`);
+                if (li) {
+                    li.classList.add('fade-out');
+                    li.addEventListener('animationend', () => this.renderTasks());
+                } else {
+                    this.renderTasks();
+                }
+            }
+        }
     }
 
     filterTasks(filterType) {
@@ -69,6 +98,7 @@ class TaskManager {
             }
         });
         this.currentFilter = filterType;
+        localStorage.setItem('filter', filterType);
         this.renderTasks();
     }
 
@@ -79,12 +109,14 @@ class TaskManager {
     renderTasks() {
         const tasksList = document.getElementById('tasksList');
         tasksList.innerHTML = '';
+        const emptyMsg = document.getElementById('emptyMessage');
 
         const filteredTasks = this.tasks.filter(this.filters[this.currentFilter]);
 
         filteredTasks.forEach(task => {
             const li = document.createElement('li');
             li.className = `task-item ${task.completed ? 'completed' : ''}`;
+            li.dataset.id = task.id;
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -95,6 +127,7 @@ class TaskManager {
             const span = document.createElement('span');
             span.className = 'task-text';
             span.textContent = task.text;
+            span.addEventListener('dblclick', () => this.editTask(task.id, span));
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn';
@@ -106,6 +139,45 @@ class TaskManager {
             li.appendChild(deleteBtn);
 
             tasksList.appendChild(li);
+        });
+
+        if (filteredTasks.length === 0) {
+            emptyMsg.style.display = 'block';
+        } else {
+            emptyMsg.style.display = 'none';
+        }
+
+        document.getElementById('totalCount').textContent = this.tasks.length;
+        document.getElementById('completedCount').textContent = this.tasks.filter(t => t.completed).length;
+    }
+
+    editTask(id, span) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = span.textContent;
+        input.className = 'edit-input';
+        span.replaceWith(input);
+        input.focus();
+
+        const save = () => {
+            const text = input.value.trim();
+            if (!text) { input.replaceWith(span); return; }
+            if (this.tasks.some(t => t.text.toLowerCase() === text.toLowerCase() && t.id !== id)) {
+                alert('La tarea ya existe');
+                input.focus();
+                return;
+            }
+            const task = this.tasks.find(t => t.id === id);
+            if (task) {
+                task.text = text;
+                this.saveTasks();
+                this.renderTasks();
+            }
+        };
+
+        input.addEventListener('blur', save);
+        input.addEventListener('keypress', e => {
+            if (e.key === 'Enter') save();
         });
     }
 }
