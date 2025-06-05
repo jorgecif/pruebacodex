@@ -8,11 +8,8 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Gestor de Tareas</h1>
-            <button id="themeToggle" class="theme-btn">Tema oscuro</button>
-        </div>
-        
+        <h1>Gestor de Tareas</h1>
+        <button id="toggleTheme" class="theme-toggle">🌙</button>        
         <div class="task-form">
             <input type="text" id="taskInput" placeholder="Nueva tarea...">
             <button id="addTask">Agregar</button>
@@ -29,9 +26,11 @@
         </div>
 
         <div class="tasks-container">
+
             <p id="emptyMessage" class="empty-msg" style="display:none">No hay tareas para mostrar</p>
             <ul id="tasksList"></ul>
         </div>
+        <div id="stats" class="stats"></div>
     </div>
     <script src="app.js"></script>
 </body>
