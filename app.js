@@ -13,9 +13,14 @@ class TaskManager {
             pending: (task) => !task.completed,
             completed: (task) => task.completed
         };
-        this.currentFilter = 'all';
+        this.currentFilter = localStorage.getItem('filter') || 'all';
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark');
+        }
+        const toggleBtn = document.getElementById('toggleTheme');
+        toggleBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
         this.initEventListeners();
-        this.renderTasks();
+        this.filterTasks(this.currentFilter);
     }
 
     initEventListeners() {
@@ -27,6 +32,8 @@ class TaskManager {
         document.querySelectorAll('.filter-btn').forEach(button => {
             button.addEventListener('click', () => this.filterTasks(button.dataset.filter));
         });
+
+        document.getElementById('toggleTheme').addEventListener('click', () => this.toggleTheme());
     }
 
     addTask() {
@@ -55,10 +62,47 @@ class TaskManager {
         }
     }
 
-    deleteTask(taskId) {
-        this.tasks = this.tasks.filter(task => task.id !== taskId);
-        this.saveTasks();
-        this.renderTasks();
+    editTask(taskId, span) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = span.textContent;
+        input.className = 'task-edit';
+        span.replaceWith(input);
+        input.focus();
+
+        const finish = () => {
+            const newText = input.value.trim();
+            if (newText) {
+                const task = this.tasks.find(t => t.id === taskId);
+                task.text = newText;
+                this.saveTasks();
+            }
+            input.replaceWith(span);
+            span.textContent = newText || span.textContent;
+        };
+
+        input.addEventListener('blur', finish);
+        input.addEventListener('keypress', e => {
+            if (e.key === 'Enter') input.blur();
+        });
+    }
+
+    deleteTask(taskId, li) {
+        if (!confirm('¿Deseas eliminar esta tarea?')) return;
+        li.classList.add('fade-out');
+        li.addEventListener('animationend', () => {
+            this.tasks = this.tasks.filter(task => task.id !== taskId);
+            this.saveTasks();
+            this.renderTasks();
+        }, { once: true });
+    }
+
+    toggleTheme() {
+        document.body.classList.toggle('dark');
+        const theme = document.body.classList.contains('dark') ? 'dark' : 'light';
+        localStorage.setItem('theme', theme);
+        const toggleBtn = document.getElementById('toggleTheme');
+        toggleBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
     }
 
     filterTasks(filterType) {
@@ -69,6 +113,7 @@ class TaskManager {
             }
         });
         this.currentFilter = filterType;
+        localStorage.setItem('filter', this.currentFilter);
         this.renderTasks();
     }
 
@@ -82,9 +127,13 @@ class TaskManager {
 
         const filteredTasks = this.tasks.filter(this.filters[this.currentFilter]);
 
+        document.getElementById('noTasks').classList.toggle('hidden', filteredTasks.length !== 0);
+
+        document.getElementById('stats').textContent = `Total: ${this.tasks.length} - Completadas: ${this.tasks.filter(t => t.completed).length}`;
+
         filteredTasks.forEach(task => {
             const li = document.createElement('li');
-            li.className = `task-item ${task.completed ? 'completed' : ''}`;
+            li.className = `task-item ${task.completed ? 'completed' : ''} fade-in`;
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -95,11 +144,12 @@ class TaskManager {
             const span = document.createElement('span');
             span.className = 'task-text';
             span.textContent = task.text;
+            span.addEventListener('dblclick', () => this.editTask(task.id, span));
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn';
             deleteBtn.textContent = 'Eliminar';
-            deleteBtn.addEventListener('click', () => this.deleteTask(task.id));
+            deleteBtn.addEventListener('click', () => this.deleteTask(task.id, li));
 
             li.appendChild(checkbox);
             li.appendChild(span);

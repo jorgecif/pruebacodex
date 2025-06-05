@@ -10,6 +10,24 @@ body {
     padding: 20px;
 }
 
+body.dark {
+    background-color: #222;
+    color: #eee;
+}
+
+body.dark .container {
+    background: #333;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+body.dark .task-item:hover {
+    background-color: #444;
+}
+
+body.dark .filter-btn.active {
+    background-color: #2196F3;
+}
+
 .container {
     max-width: 800px;
     margin: 0 auto;
@@ -17,6 +35,7 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 h1 {
@@ -48,6 +67,14 @@ button {
     transition: background-color 0.3s;
 }
 
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    font-size: 20px;
+}
+
 #addTask {
     background-color: #4CAF50;
     color: white;
@@ -66,6 +93,11 @@ button {
 .filter-btn {
     background-color: #f0f0f0;
     color: #666;
+}
+
+body.dark .filter-btn {
+    background-color: #555;
+    color: #ccc;
 }
 
 .filter-btn.active {
@@ -110,6 +142,12 @@ button {
     flex: 1;
 }
 
+.task-edit {
+    flex: 1;
+    padding: 5px;
+    font-size: 16px;
+}
+
 .delete-btn {
     background-color: #f44336;
     color: white;
@@ -117,4 +155,32 @@ button {
 
 .delete-btn:hover {
     background-color: #da190b;
+}
+
+.hidden {
+    display: none;
+}
+
+.stats {
+    margin-top: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.fade-in {
+    animation: fadeIn 0.3s forwards;
+}
+
+.fade-out {
+    animation: fadeOut 0.3s forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; height: auto; }
+    to { opacity: 0; height: 0; margin: 0; padding: 0; }
 }
