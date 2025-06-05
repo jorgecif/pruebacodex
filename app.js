@@ -78,14 +78,25 @@ class TaskManager {
         filteredTasks.forEach(task => {
             const li = document.createElement('li');
             li.className = `task-item ${task.completed ? 'completed' : ''}`;
-            li.innerHTML = `
-                <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
-                <span class="task-text">${task.text}</span>
-                <button class="delete-btn">Eliminar</button>
-            `;
 
-            li.querySelector('.task-checkbox').addEventListener('change', () => this.toggleTask(task.id));
-            li.querySelector('.delete-btn').addEventListener('click', () => this.deleteTask(task.id));
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'task-checkbox';
+            checkbox.checked = task.completed;
+            checkbox.addEventListener('change', () => this.toggleTask(task.id));
+
+            const span = document.createElement('span');
+            span.className = 'task-text';
+            span.textContent = task.text;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.textContent = 'Eliminar';
+            deleteBtn.addEventListener('click', () => this.deleteTask(task.id));
+
+            li.appendChild(checkbox);
+            li.appendChild(span);
+            li.appendChild(deleteBtn);
 
             tasksList.appendChild(li);
         });
