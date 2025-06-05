@@ -19,6 +19,7 @@ class TaskManager {
         }
         const toggleBtn = document.getElementById('toggleTheme');
         toggleBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+
         this.initEventListeners();
         this.filterTasks(this.currentFilter);
     }
@@ -33,14 +34,20 @@ class TaskManager {
             button.addEventListener('click', () => this.filterTasks(button.dataset.filter));
         });
 
-        document.getElementById('toggleTheme').addEventListener('click', () => this.toggleTheme());
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            const mode = document.body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', mode);
+            const btn = document.getElementById('themeToggle');
+            btn.textContent = mode === 'dark' ? 'Tema claro' : 'Tema oscuro';
+        });
     }
 
     addTask() {
         const taskInput = document.getElementById('taskInput');
         const taskText = taskInput.value.trim();
 
-        if (taskText) {
+        if (taskText && !this.tasks.some(t => t.text.toLowerCase() === taskText.toLowerCase())) {
             this.tasks.push({
                 id: Date.now(),
                 text: taskText,
@@ -50,6 +57,8 @@ class TaskManager {
             this.saveTasks();
             this.renderTasks();
             taskInput.value = '';
+        } else if (taskText) {
+            alert('La tarea ya existe');
         }
     }
 
@@ -103,6 +112,7 @@ class TaskManager {
         localStorage.setItem('theme', theme);
         const toggleBtn = document.getElementById('toggleTheme');
         toggleBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+
     }
 
     filterTasks(filterType) {
@@ -113,7 +123,8 @@ class TaskManager {
             }
         });
         this.currentFilter = filterType;
-        localStorage.setItem('filter', this.currentFilter);
+
+        localStorage.setItem('filter', filterType);
         this.renderTasks();
     }
 
@@ -124,6 +135,7 @@ class TaskManager {
     renderTasks() {
         const tasksList = document.getElementById('tasksList');
         tasksList.innerHTML = '';
+        const emptyMsg = document.getElementById('emptyMessage');
 
         const filteredTasks = this.tasks.filter(this.filters[this.currentFilter]);
 
@@ -133,7 +145,9 @@ class TaskManager {
 
         filteredTasks.forEach(task => {
             const li = document.createElement('li');
-            li.className = `task-item ${task.completed ? 'completed' : ''} fade-in`;
+
+            li.className = `task-item ${task.completed ? 'completed' : ''}`;
+            li.dataset.id = task.id;
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -156,6 +170,45 @@ class TaskManager {
             li.appendChild(deleteBtn);
 
             tasksList.appendChild(li);
+        });
+
+        if (filteredTasks.length === 0) {
+            emptyMsg.style.display = 'block';
+        } else {
+            emptyMsg.style.display = 'none';
+        }
+
+        document.getElementById('totalCount').textContent = this.tasks.length;
+        document.getElementById('completedCount').textContent = this.tasks.filter(t => t.completed).length;
+    }
+
+    editTask(id, span) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = span.textContent;
+        input.className = 'edit-input';
+        span.replaceWith(input);
+        input.focus();
+
+        const save = () => {
+            const text = input.value.trim();
+            if (!text) { input.replaceWith(span); return; }
+            if (this.tasks.some(t => t.text.toLowerCase() === text.toLowerCase() && t.id !== id)) {
+                alert('La tarea ya existe');
+                input.focus();
+                return;
+            }
+            const task = this.tasks.find(t => t.id === id);
+            if (task) {
+                task.text = text;
+                this.saveTasks();
+                this.renderTasks();
+            }
+        };
+
+        input.addEventListener('blur', save);
+        input.addEventListener('keypress', e => {
+            if (e.key === 'Enter') save();
         });
     }
 }

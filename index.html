@@ -9,8 +9,7 @@
 <body>
     <div class="container">
         <h1>Gestor de Tareas</h1>
-        <button id="toggleTheme" class="theme-toggle">🌙</button>
-        
+        <button id="toggleTheme" class="theme-toggle">🌙</button>        
         <div class="task-form">
             <input type="text" id="taskInput" placeholder="Nueva tarea...">
             <button id="addTask">Agregar</button>
@@ -22,8 +21,13 @@
             <button class="filter-btn" data-filter="completed">Completadas</button>
         </div>
 
+        <div class="stats">
+            <span id="totalCount">0</span> tareas en total - <span id="completedCount">0</span> completadas
+        </div>
+
         <div class="tasks-container">
-            <p id="noTasks" class="hidden">No hay tareas que mostrar</p>
+
+            <p id="emptyMessage" class="empty-msg" style="display:none">No hay tareas para mostrar</p>
             <ul id="tasksList"></ul>
         </div>
         <div id="stats" class="stats"></div>
