@@ -1,6 +1,13 @@
 class TaskManager {
     constructor() {
-        this.tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        try {
+            const saved = localStorage.getItem('tasks');
+            this.tasks = saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            console.error('Error loading tasks from localStorage', e);
+            this.tasks = [];
+            localStorage.removeItem('tasks');
+        }
         this.filters = {
             all: () => true,
             pending: (task) => !task.completed,
